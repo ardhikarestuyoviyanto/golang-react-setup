@@ -13,12 +13,15 @@ import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useDispatch } from "react-redux";
+import { signIn } from "../redux/slicer";
 
 const MySwal = withReactContent(Swal);
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const formik = useFormik({
     initialValues: {
@@ -43,7 +46,8 @@ export default function SignIn() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            console.log(data);
+            dispatch(signIn(data.data));
+            window.location.href = "/dashboard";
           } else {
             MySwal.fire({
               title: "Gagal",

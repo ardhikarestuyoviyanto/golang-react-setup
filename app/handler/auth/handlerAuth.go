@@ -32,14 +32,6 @@ func SignUpHandler(db *gorm.DB) echo.HandlerFunc {
 		captchaId := c.FormValue("captchaId")
 		captchaAnswer := c.FormValue("captchaAnswer")
 
-		// Validasi captcha
-		if !captcha.VerifyString(captchaId, captchaAnswer){
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"error":   "Captcha tidak valid",
-				"success": false,
-			})
-		}
-
 		// Validasi nama
 		if name == "" || len(name) < 3 {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -60,6 +52,14 @@ func SignUpHandler(db *gorm.DB) echo.HandlerFunc {
 		if password != confirmPassword {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"error":   "Password & konfirmasi password tidak cocok",
+				"success": false,
+			})
+		}
+
+		// Validasi captcha
+		if !captcha.VerifyString(captchaId, captchaAnswer){
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Captcha tidak valid",
 				"success": false,
 			})
 		}
@@ -101,10 +101,10 @@ func SignInHandler(db *gorm.DB) echo.HandlerFunc{
 		captchaId := c.FormValue("captchaId")
 		captchaAnswer := c.FormValue("captchaAnswer")
 
-		// Validasi captcha
-		if !captcha.VerifyString(captchaId, captchaAnswer){
+		// Validasi email
+		if err := helpers.ValidateEmail(email); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"error":   "Captcha tidak valid",
+				"error":   err.Error(),
 				"success": false,
 			})
 		}
@@ -112,6 +112,14 @@ func SignInHandler(db *gorm.DB) echo.HandlerFunc{
 		if password == ""{
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"error":   "Password wajib diisi",
+				"success": false,
+			})
+		}
+
+		// Validasi captcha
+		if !captcha.VerifyString(captchaId, captchaAnswer){
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Captcha tidak valid",
 				"success": false,
 			})
 		}
@@ -142,7 +150,8 @@ func SignInHandler(db *gorm.DB) echo.HandlerFunc{
 				"token": resultToken,
 				"user": map[string]interface{}{
 					"id": userEmail.ID,
-					"name": userEmail.Email,
+					"name": userEmail.Name,
+					"email": userEmail.Email,
 				},
 			},
 		})

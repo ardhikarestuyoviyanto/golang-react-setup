@@ -3,6 +3,7 @@ package routes
 import (
 	"go-auth/app/handler/auth"
 	"go-auth/app/handler/auth/captcha_"
+	"go-auth/app/handler/task"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,6 +17,7 @@ func RoutesWeb(e *echo.Echo, db *gorm.DB) {
 	e.GET("/api/v1/captcha/:captchaId/get", captcha_.GetCaptcha)
 	e.POST("/api/v1/signUp", auth.SignUpHandler(db))
 	e.POST("/api/v1/signIn", auth.SignInHandler(db))
-
+	e.GET("/api/v1/tasks", task.GetAllHandler(db))
+	e.POST("/api/v1/tasks", task.StoreHandler(db))
 
 }
