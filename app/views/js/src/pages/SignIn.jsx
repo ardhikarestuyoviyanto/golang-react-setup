@@ -1,5 +1,6 @@
 import {
   CCardFooter,
+  CCardHeader,
   CContainer,
   CForm,
   CFormInput,
@@ -13,8 +14,11 @@ import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { useDispatch } from "react-redux";
-import { signIn } from "../redux/slicer";
+import { useDispatch, useSelector } from "react-redux";
+import { signIn, toggleDarkMode } from "../redux/slicer";
+import { useNavigate } from "react-router-dom";
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const MySwal = withReactContent(Swal);
 
@@ -22,6 +26,9 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
+  const darkMode = useSelector((state) => state.theme.darkMode);
 
   const formik = useFormik({
     initialValues: {
@@ -47,7 +54,7 @@ export default function SignIn() {
         .then((data) => {
           if (data.success) {
             dispatch(signIn(data.data));
-            window.location.href = "/dashboard";
+            navigate("home");
           } else {
             MySwal.fire({
               title: "Gagal",
@@ -99,6 +106,9 @@ export default function SignIn() {
   };
 
   useEffect(() => {
+    if (user != undefined) {
+      navigate("/home");
+    }
     getCaptchaId();
   }, []);
   return (
@@ -108,7 +118,14 @@ export default function SignIn() {
           <div className="col-sm-12"></div>
           <CCard style={{ width: "30rem" }}>
             <CCardBody>
-              <CCardTitle> Login</CCardTitle>
+              <CCardTitle>
+                Login
+                <FontAwesomeIcon
+                  style={{ float: "right", cursor: "pointer" }}
+                  onClick={() => dispatch(toggleDarkMode())}
+                  icon={darkMode ? faMoon : faSun}
+                />
+              </CCardTitle>
               <hr />
               <CForm>
                 <div className="mt-2 mb-2">

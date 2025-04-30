@@ -3,39 +3,68 @@ package task
 import (
 	"fmt"
 	"go-auth/app/helpers"
-	"go-auth/app/middleware"
 	"go-auth/app/models"
 	"go-auth/app/models/entity/taskEntity"
-	"io"
+	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
-func StoreHandler(db *gorm.DB) echo.HandlerFunc {
+func DestroyHandler(db *gorm.DB)echo.HandlerFunc{
 	return func(c echo.Context) error {
-		decodedToken, err := middleware.DecodedToken(c)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]interface{}{"success":false,"error": err.Error()})
+		taskIdHash := c.Param("taskId")
+		taskIdStr, err := helpers.DecryptString(taskIdHash)
+		if err != nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "taskId tidak valid",
+				"success": false,
+			})
 		}
-		user, _ := decodedToken["user"].(map[string]interface{})
+		
+		taskId, err := strconv.Atoi(taskIdStr)
 
-		id, ok := user["id"].(float64)
+		if err != nil{
+			return fmt.Errorf("Gagal Konversi taskId ke int")
+		}
 
-		if !ok{
-			fmt.Println("Gagal Parse Ke Float")
-			return nil
-		} 
+		var taskModel models.Task
+		db.First(&taskModel, taskId)
+		if taskModel.ID == 0{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "task tidak ada",
+				"success": false,
+			})
+		}
 
-		userId := uint(id)
+		db.Delete(&taskModel)
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message":   "Berhasil Hapus",
+			"success": true,
+		})
+		
+	}
+}
 
+func UpdateHandler(db *gorm.DB)echo.HandlerFunc{
+	return func(c echo.Context) error {
+		taskIdHash := c.Param("taskId")
+		taskIdStr, err := helpers.DecryptString(taskIdHash)
+		if err != nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "taskId tidak valid",
+				"success": false,
+			})
+		}
+		
+		taskId, err := strconv.Atoi(taskIdStr)
+
+		if err != nil{
+			return fmt.Errorf("Gagal Konversi taskId ke int")
+		}
 
 		task := c.FormValue("task")
 		taskDate := c.FormValue("taskDate")
@@ -59,19 +88,146 @@ func StoreHandler(db *gorm.DB) echo.HandlerFunc {
 
 		// Validate attachmentFile
 		if errFile == nil {
-			// Check file extension
-			ext := filepath.Ext(attachmentFile.Filename)
-			if ext != ".pdf" && ext != ".PDF" { // Case-insensitive check
+			// Validasi file
+			err := helpers.ValidateExtFile([]string{".pdf", ".PDF"}, attachmentFile, 5)
+			if err != nil {
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
-					"error":   "Ekstensi File Wajib Pdf",
+					"error":   err.Error(),
 					"success": false,
 				})
 			}
+		}
 
-			// Check file size (max 5MB)
-			if attachmentFile.Size > 5*1024*1024 {
+		// Parse taskDate
+		parsedDate, err := time.Parse("2006-01-02", taskDate)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Format Tanggal Tidak Valid",
+				"success": false,
+			})
+		}
+
+		var taskModel models.Task
+		db.First(&taskModel, taskId)
+		if taskModel.ID == 0{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "task tidak ada",
+				"success": false,
+			})
+		}
+
+		taskModel.Task = task
+		taskModel.TaskDate = parsedDate
+		if errFile == nil{
+			// Update File
+			dstDir := "./app/views/js/dist/assets/file/"
+			fileName, err := helpers.UploadFile(dstDir, attachmentFile)
+			if err != nil{
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
-					"error":   "Ukuran File Maksimal 5 mb",
+					"error":  err.Error(),
+					"success": false,
+				})
+			}
+			// Update
+			taskModel.AttachmentFile = &fileName
+		}
+
+		db.Save(&taskModel)
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message":   "task berhasil update",
+			"success": true,
+		})
+	}
+}
+
+func GetHandler(db *gorm.DB) echo.HandlerFunc{
+	return func(c echo.Context) error {
+		taskIdHash := c.Param("taskId")
+		taskIdStr, err := helpers.DecryptString(taskIdHash)
+		if err != nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "taskId tidak valid",
+				"success": false,
+			})
+		}
+		
+		taskId, err := strconv.Atoi(taskIdStr)
+
+		if err != nil{
+			return fmt.Errorf("Gagal Konversi taskId ke int")
+		}
+
+		var task models.Task
+		db.First(&task, taskId)
+
+		if task.ID == 0{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Task tidak ada",
+				"success": false,
+			})
+		}
+
+		parsedDate := task.TaskDate
+		taskDate := parsedDate.Format("2006-01-02")
+
+		result := map[string]interface{}{
+			"data":map[string]interface{}{
+				"id":taskIdHash,
+				"task": task.Task,
+				"taskDate": taskDate,
+				"attachmentFile": task.AttachmentFile,
+			},
+			"success": true,
+		}
+
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
+func StoreHandler(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := c.Get("user").(map[string]interface{})
+
+		if !ok{
+			return fmt.Errorf("user ga ada")
+		}
+
+		id, ok := user["id"].(float64)
+
+		if !ok{
+			return fmt.Errorf("Gagal Parse Ke Float")
+		} 
+
+		userId := uint(id)
+
+		task := c.FormValue("task")
+		taskDate := c.FormValue("taskDate")
+		attachmentFile, errFile := c.FormFile("attachmentFile")
+
+		// Validate task
+		if task == "" {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Tugas Wajib Diisi",
+				"success": false,
+			})
+		}
+
+		// Validate taskDate
+		if taskDate == "" {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":   "Tanggal Wajib Diisi",
+				"success": false,
+			})
+		}
+
+		// Validate attachmentFile
+		if errFile == nil {
+			// Validasi file
+			err := helpers.ValidateExtFile([]string{".pdf", ".PDF"}, attachmentFile, 5)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+					"error":   err.Error(),
 					"success": false,
 				})
 			}
@@ -114,43 +270,17 @@ func StoreHandler(db *gorm.DB) echo.HandlerFunc {
 			})
 		}
 
-		// File handling
-		dstDir := "./app/views/js/public/"
-		ext := filepath.Ext(attachmentFile.Filename)
-		randomFileName := uuid.New().String() + ext
-		dstPath := filepath.Join(dstDir, randomFileName)
-
-		// Open the file from the request
-		src, err := attachmentFile.Open()
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error":   "Gagal Membuka File",
-				"success": false,
-			})
-		}
-		defer src.Close()
-
-		// Create the destination file
-		dst, err := os.Create(dstPath)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error":   "Gagal Menyimpan File",
-				"success": false,
-			})
-		}
-		defer dst.Close()
-
-		// Copy content from the uploaded file to the destination
-		_, err = io.Copy(dst, src)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error":   "Gagal Menyalin File",
+		dstDir := "./app/views/js/dist/assets/file/"
+		fileName, err := helpers.UploadFile(dstDir, attachmentFile)
+		if err != nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":  err.Error(),
 				"success": false,
 			})
 		}
 
 		// Update the task with the attachment filename
-		db.Model(&models.Task{}).Where("id = ?", taskData.ID).Update("attachment_file", randomFileName)
+		db.Model(&models.Task{}).Where("id = ?", taskData.ID).Update("attachment_file", fileName)
 
 		// Return success response
 		return c.JSON(http.StatusCreated, map[string]interface{}{
@@ -163,16 +293,9 @@ func StoreHandler(db *gorm.DB) echo.HandlerFunc {
 
 func GetAllHandler(db *gorm.DB)echo.HandlerFunc{
 	return func(c echo.Context) error {
-		decodedToken, err := middleware.DecodedToken(c)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]interface{}{"success":false,"error": err.Error()})
-		}
-
-		user, ok := decodedToken["user"].(map[string]interface{})
-
+		user, ok := c.Get("user").(map[string]interface{})
 		if !ok{
-			fmt.Println("Invalid user data in token")
-			return nil
+			return fmt.Errorf("user ga ada")
 		}
 
 		sortBy :=  c.QueryParam("sortBy")
@@ -199,8 +322,12 @@ func GetAllHandler(db *gorm.DB)echo.HandlerFunc{
 		taskCount := taskEntity.CountAllList(db, filter, where)
 
 		for i := 0; i < len(tasks); i++ {
-			encryptId, _ := helpers.EncryptString(fmt.Sprintf("%v", tasks[i].ID)) 
-		
+			encryptId, err := helpers.EncryptString(fmt.Sprintf("%v", tasks[i].ID)) 
+			
+			if err != nil{
+				log.Print(err.Error())
+			}
+
 			parsedDate := tasks[i].TaskDate
 			taskDate := parsedDate.Format("2006-01-02")
 		

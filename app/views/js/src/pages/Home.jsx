@@ -22,6 +22,7 @@ import {
   CForm,
   CFormTextarea,
   CFormLabel,
+  CTooltip,
 } from "@coreui/react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,24 +32,31 @@ import {
   faArrowUp,
   faCirclePlus,
   faFilePdf,
+  faMoon,
   faPenToSquare,
   faRightFromBracket,
+  faSun,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import Pagination from "../components/Pagination";
 import Swal from "sweetalert2";
-import { signOut } from "../redux/slicer";
+import { signOut, toggleDarkMode } from "../redux/slicer";
 import { useFormik } from "formik";
 import withReactContent from "sweetalert2-react-content";
+import { useNavigate } from "react-router-dom";
 const MySwal = withReactContent(Swal);
 
-export default function Dashboard() {
+export default function Home() {
   const user = useSelector((state) => state.auth.user);
+  const darkMode = useSelector((state) => state.theme.darkMode);
   const today = new Date().toISOString().slice(0, 10);
   const dispatch = useDispatch();
   const [openModal, setOpenModal] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
+  const [pdfUrlPrev, setUrlPdfPrev] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
+  const navigate = useNavigate();
 
   const [data, setData] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
@@ -127,8 +135,9 @@ export default function Dashboard() {
     },
   });
 
-  const handlePdf = (id) => {
-    alert(id);
+  const handlePdf = (file) => {
+    setUrlPdfPrev(`${import.meta.env.VITE_API_DOMAIN}/assets/file/${file}`);
+    setShowPdf(true);
   };
 
   const handleEdit = async (id) => {
@@ -267,7 +276,7 @@ export default function Dashboard() {
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(signOut());
-        window.location.href = "/";
+        navigate("/");
       }
     });
   };
@@ -288,6 +297,7 @@ export default function Dashboard() {
             className="btn btn-primary"
             onClick={() => {
               setOpenModal(!openModal);
+              formik.resetForm();
             }}
           >
             <FontAwesomeIcon icon={faCirclePlus} style={{ marginRight: 2 }} />
@@ -303,6 +313,13 @@ export default function Dashboard() {
               style={{ marginRight: 2 }}
             />
             Logout
+          </CButton>
+          <CButton
+            style={{ float: "right", marginRight: 4 }}
+            className="btn btn-secondary"
+            onClick={() => dispatch(toggleDarkMode())}
+          >
+            <FontAwesomeIcon icon={darkMode ? faMoon : faSun} />
           </CButton>
         </CCardHeader>
         <CCardBody>
@@ -385,7 +402,7 @@ export default function Dashboard() {
                     }
                   />
                 </CTableHeaderCell>
-                <CTableHeaderCell scope="col" style={{ width: 120 }}>
+                <CTableHeaderCell scope="col" style={{ width: 130 }}>
                   Aksi
                 </CTableHeaderCell>
               </CTableRow>
@@ -406,38 +423,60 @@ export default function Dashboard() {
                     <CTableDataCell>{task.task}</CTableDataCell>
                     <CTableDataCell>{task.taskDate}</CTableDataCell>
                     <CTableDataCell>
-                      <CButton
-                        color="primary"
-                        onClick={() => {
-                          handleEdit(task.id);
-                        }}
-                        size="sm"
-                        style={{ marginLeft: 2, marginRight: 2 }}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </CButton>
-                      {task.attachmentFile != null && (
+                      <CTooltip content="Edit">
                         <CButton
-                          color="success"
+                          color="primary"
                           onClick={() => {
-                            handlePdf(task.id);
+                            handleEdit(task.id);
                           }}
                           size="sm"
-                          style={{ marginLeft: 2, marginRight: 2 }}
+                          style={{
+                            marginLeft: 2,
+                            marginRight: 2,
+                            marginBottom: 2,
+                            marginTop: 2,
+                          }}
                         >
-                          <FontAwesomeIcon icon={faFilePdf} />
+                          <FontAwesomeIcon icon={faPenToSquare} />
                         </CButton>
+                      </CTooltip>
+
+                      {task.attachmentFile != null && (
+                        <CTooltip content="Pdf">
+                          <CButton
+                            color="success"
+                            onClick={() => {
+                              handlePdf(task.attachmentFile);
+                            }}
+                            size="sm"
+                            style={{
+                              marginLeft: 2,
+                              marginRight: 2,
+                              marginBottom: 2,
+                              marginTop: 2,
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faFilePdf} />
+                          </CButton>
+                        </CTooltip>
                       )}
-                      <CButton
-                        color="danger"
-                        onClick={() => {
-                          handleDestroy(task.id);
-                        }}
-                        size="sm"
-                        style={{ marginLeft: 2, marginRight: 2 }}
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </CButton>
+                      <CTooltip content="Hapus">
+                        <CButton
+                          color="danger"
+                          onClick={() => {
+                            handleDestroy(task.id);
+                          }}
+                          size="sm"
+                          style={{
+                            marginLeft: 2,
+                            marginRight: 2,
+                            marginBottom: 2,
+                            marginTop: 2,
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </CButton>
+                      </CTooltip>
                     </CTableDataCell>
                   </CTableRow>
                 ))
@@ -461,14 +500,24 @@ export default function Dashboard() {
         </CCardBody>
       </CCard>
 
-      <CModal
-        visible={openModal}
-        onClose={() => setOpenModal(false)}
-        size="lg"
-        fullscreen="lg"
-      >
+      <CModal visible={showPdf} onClose={() => setShowPdf(false)} size="xl">
         <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">
+          <CModalTitle>Preview File</CModalTitle>
+        </CModalHeader>
+        <CModalBody style={{ padding: 5 }}>
+          <iframe
+            src={pdfUrlPrev || ""}
+            width="100%"
+            height="600vh"
+            style={{ border: "none" }}
+            title="Chrome-style PDF Preview"
+          ></iframe>
+        </CModalBody>
+      </CModal>
+
+      <CModal visible={openModal} onClose={() => setOpenModal(false)} size="lg">
+        <CModalHeader>
+          <CModalTitle>
             {formik.values.id == "" ? "Tambah Tugas" : "Edit Tugas"}
           </CModalTitle>
         </CModalHeader>
@@ -505,7 +554,6 @@ export default function Dashboard() {
               <CFormLabel>Lampiran File</CFormLabel>
               <CFormInput
                 type="file"
-                value={formik.values.attachmentFile}
                 onChange={(event) => {
                   const file = event.target.files[0];
                   formik.setFieldValue("attachmentFile", file);

@@ -4,6 +4,9 @@ const initialState = {
   user: localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null,
+  darkMode: localStorage.getItem("darkmode")
+    ? localStorage.getItem("darkmode")
+    : false,
 };
 
 const authSlice = createSlice({
@@ -21,11 +24,27 @@ const authSlice = createSlice({
   },
 });
 
+const themeSlice = createSlice({
+  name: "theme",
+  initialState,
+  reducers: {
+    toggleDarkMode: (state) => {
+      state.darkMode = !state.darkMode;
+    },
+    setDarkMode: (state, action) => {
+      state.darkMode = action.payload;
+      localStorage.setItem("darkmode", action.payload);
+    },
+  },
+});
+
 const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
+    theme: themeSlice.reducer,
   },
 });
 
 export const { signIn, signOut } = authSlice.actions;
+export const { toggleDarkMode, setDarkMode } = themeSlice.actions;
 export default store;

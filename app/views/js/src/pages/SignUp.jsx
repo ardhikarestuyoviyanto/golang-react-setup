@@ -10,9 +10,10 @@ import {
 import { CButton, CCard, CCardBody, CCardTitle } from "@coreui/react";
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useSelector } from "react-redux";
 
 const MySwal = withReactContent(Swal);
 
@@ -20,6 +21,8 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -117,6 +120,9 @@ export default function SignUp() {
   };
 
   useEffect(() => {
+    if (user != undefined) {
+      navigate("/home");
+    }
     getCaptchaId();
   }, []);
   return (

@@ -74,7 +74,7 @@ func SignUpHandler(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		// Hash password
-		hashedPassword, _ := helpers.HashString(password)
+		hashedPassword, _ := helpers.Hash(password)
 
 		// Simpan user baru
 		user := models.Users{
@@ -133,7 +133,7 @@ func SignInHandler(db *gorm.DB) echo.HandlerFunc{
 			})
 		}
 
-		if err := helpers.CheckHash(userEmail.Password, password); err != nil{
+		if err := helpers.VerifyHash(userEmail.Password, password); err != nil{
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"error":   "Password Salah",
 				"success": false,

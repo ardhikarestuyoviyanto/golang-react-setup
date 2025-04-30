@@ -71,7 +71,8 @@ func StartApplication(e *echo.Echo) {
 		e.Debug = true
 	} else {
 		e.Debug = false
-	}	// Start Application
+	}	
+	// Start Application
 	e.Logger.Fatal(e.Start(port))
 }
 

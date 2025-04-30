@@ -1,0 +1,68 @@
+body.dark-theme {
+  --cui-body-bg: #1e1e2f;
+  --cui-body-color: #e0e0e0;
+  --cui-card-bg: #26293b;
+  --cui-border-color: #444;
+  --cui-accent-bg: #333652;
+  --cui-hover-bg: #3a3e5c;
+  --cui-striped-bg: #2e3047;
+  --cui-header-bg: #1a1c2d;
+  --cui-table-border: #555;
+
+  background-color: var(--cui-body-bg) !important;
+  color: var(--cui-body-color) !important;
+}
+
+/* Card */
+body.dark-theme .card {
+  background-color: var(--cui-card-bg) !important;
+  color: var(--cui-body-color) !important;
+  border-color: var(--cui-border-color) !important;
+}
+
+/* Form */
+body.dark-theme .form-control {
+  background-color: var(--cui-card-bg);
+  color: var(--cui-body-color);
+  border-color: var(--cui-border-color);
+}
+
+/* Table */
+body.dark-theme .table {
+  background-color: var(--cui-card-bg);
+  color: var(--cui-body-color);
+  border-color: var(--cui-table-border);
+}
+
+body.dark-theme .table th,
+body.dark-theme .table td {
+  background-color: var(--cui-card-bg);
+  color: var(--cui-body-color);
+  border-color: var(--cui-table-border) !important;
+}
+
+body.dark-theme .table thead th {
+  background-color: var(--cui-header-bg);
+  color: #ffffff;
+  border-bottom: 2px solid var(--cui-border-color);
+}
+
+body.dark-theme .table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--cui-striped-bg);
+}
+
+body.dark-theme .table-hover tbody tr:hover {
+  background-color: var(--cui-hover-bg);
+}
+
+/* Scrollbar (optional) */
+body.dark-theme ::-webkit-scrollbar {
+  width: 8px;
+}
+body.dark-theme ::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 4px;
+}
+body.dark-theme ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
