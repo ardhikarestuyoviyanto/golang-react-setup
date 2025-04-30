@@ -66,3 +66,42 @@ body.dark-theme ::-webkit-scrollbar-thumb {
 body.dark-theme ::-webkit-scrollbar-track {
   background-color: transparent;
 }
+
+/* Modal */
+body.dark-theme .modal-content {
+  background-color: var(--cui-card-bg) !important;
+  color: var(--cui-body-color) !important;
+  border-color: var(--cui-border-color);
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+  border-color: var(--cui-border-color) !important;
+}
+
+body.dark-theme .modal-title {
+  color: var(--cui-body-color) !important;
+}
+
+/* Input Text */
+body.dark-theme input[type="text"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="password"],
+body.dark-theme input[type="date"],
+body.dark-theme textarea {
+  background-color: var(--cui-card-bg);
+  color: var(--cui-body-color);
+  border: 1px solid var(--cui-border-color);
+}
+
+body.dark-theme input[type="text"]::placeholder,
+body.dark-theme textarea::placeholder {
+  color: #aaa;
+}
+
+/* Input File */
+body.dark-theme input[type="file"] {
+  background-color: var(--cui-card-bg);
+  color: var(--cui-body-color);
+  border: 1px solid var(--cui-border-color);
+}
