@@ -6,16 +6,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
 
 func StartApplication(e *echo.Echo) {
 	// Load Env
-	err := godotenv.Load()
-	if err != nil{
-		log.Fatal("Error load env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil{
+	// 	log.Fatal("Error load env file")
+	// }
 
 	// Get Variable
 	port := os.Getenv("PORT")

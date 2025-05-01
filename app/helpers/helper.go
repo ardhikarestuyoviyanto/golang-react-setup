@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -16,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,10 +43,10 @@ func VerifyHash(hashed, plainText string) error {
 }
 
 func EncryptString(plainText string)(string, error){
-	err := godotenv.Load()
-	if err != nil{
-		log.Fatal("Error load env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil{
+	// 	log.Fatal("Error load env file")
+	// }
 	
 	var appKey = os.Getenv("APP_KEY")
 
@@ -76,10 +74,10 @@ func EncryptString(plainText string)(string, error){
 }
 
 func DecryptString(encryptedText string)(string, error){
-	err := godotenv.Load()
-	if err != nil{
-		log.Fatal("Error load env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil{
+	// 	log.Fatal("Error load env file")
+	// }
 	
 	var appKey = os.Getenv("APP_KEY")
 
