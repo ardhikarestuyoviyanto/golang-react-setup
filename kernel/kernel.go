@@ -57,6 +57,5 @@ func StartApplication(e *echo.Echo) {
 		e.Debug = false
 	}	
 	// Start Application
-	e.Logger.Fatal(e.Start(port))
-}
+	e.Logger.Fatal(e.Start(":" + port))}
 
