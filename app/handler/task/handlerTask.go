@@ -120,7 +120,7 @@ func UpdateHandler(db *gorm.DB)echo.HandlerFunc{
 		taskModel.TaskDate = parsedDate
 		if errFile == nil{
 			// Update File
-			dstDir := "./app/views/js/dist/assets/file/"
+			dstDir := "./app/views/storage/file/"
 			fileName, err := helpers.UploadFile(dstDir, attachmentFile)
 			if err != nil{
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -270,7 +270,7 @@ func StoreHandler(db *gorm.DB) echo.HandlerFunc {
 			})
 		}
 
-		dstDir := "./app/views/js/dist/assets/file/"
+		dstDir := "./app/views/storage/file/"
 		fileName, err := helpers.UploadFile(dstDir, attachmentFile)
 		if err != nil{
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{

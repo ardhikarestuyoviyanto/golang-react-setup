@@ -3,25 +3,12 @@ package kernel
 import (
 	"go-auth/app/models"
 	"go-auth/app/routes"
-	"html/template"
-	"io"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
-
-type Template struct {
-    templates *template.Template
-}
-
-func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-    return t.templates.ExecuteTemplate(w, name, data)
-}
-
-
 
 func StartApplication(e *echo.Echo) {
 	// Load Env
@@ -55,16 +42,14 @@ func StartApplication(e *echo.Echo) {
 
 	// Register routes
 	routes.RoutesWeb(e, db)
-	// Register views
-	basePath, _ := os.Getwd()
-	t := &Template{
-		templates: template.Must(template.ParseGlob(filepath.Join(basePath, "app/views/**/*.html"))),
-	}
-	e.Renderer = t
 
 	// Register static file untuk frontend
 	e.Static("/assets", "app/views/js/dist/assets")
-	e.Static("/", "app/views/js/public")
+	e.Static("/storage", "app/views/storage")
+	e.File("/", "app/views/js/dist/index.html")
+	e.GET("/*", func(c echo.Context) error {
+		return c.File("app/views/js/dist/index.html")
+	})
 
 	// Debug App
 	if appEnv == "development" {

@@ -15,7 +15,6 @@ func RoutesWeb(e *echo.Echo, db *gorm.DB) {
 	e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
 	
-	e.GET("/", auth.LoginView)
 	e.GET("/api/v1/captcha/generateCaptcha", captcha_.GenerateCaptcha)
 	e.GET("/api/v1/captcha/:captchaId/get", captcha_.GetCaptcha)
 	e.POST("/api/v1/signUp", auth.SignUpHandler(db))

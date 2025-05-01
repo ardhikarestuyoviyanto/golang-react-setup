@@ -6,22 +6,12 @@ import (
 	"go-auth/app/models"
 	"go-auth/app/models/entity/usersEntity"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/dchest/captcha"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
-
-// Untuk Load View Pertama Kali
-func LoginView(c echo.Context) error {
-	appName := os.Getenv("APP_NAME")
-	data := map[string]interface{}{
-		"AppName": appName,
-	}
-	return c.Render(http.StatusOK, "layout/index.html", data)
-}
 
 func SignUpHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {

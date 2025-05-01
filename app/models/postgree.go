@@ -64,7 +64,7 @@ func InitDb(config map[string]interface{}) (*gorm.DB, error) {
 	}
 
 	// Migrasi Model
-	// db.AutoMigrate(&Users{},&Task{})
+	db.AutoMigrate(&Users{},&Task{})
 
 	return db, nil
 }

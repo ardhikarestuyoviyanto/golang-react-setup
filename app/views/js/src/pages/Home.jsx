@@ -136,7 +136,7 @@ export default function Home() {
   });
 
   const handlePdf = (file) => {
-    setUrlPdfPrev(`${import.meta.env.VITE_API_DOMAIN}/assets/file/${file}`);
+    setUrlPdfPrev(`${import.meta.env.VITE_API_DOMAIN}/storage/file/${file}`);
     setShowPdf(true);
   };
 
