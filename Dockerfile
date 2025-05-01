@@ -18,9 +18,6 @@ FROM golang:1.23-alpine AS backend
 
 WORKDIR /app
 
-# Copy env file (pertimbangkan untuk menggunakan variabel environment di Railway)
-COPY .env .env
-
 # Copy Go modules
 COPY go.mod go.sum ./
 RUN go mod download
