@@ -38,6 +38,8 @@ func StartApplication(e *echo.Echo) {
 
 	// Register routes
 	routes.RoutesWeb(e, db)
+	// Buat folder untuk penyimpanan file
+    os.MkdirAll("app/views/storage/file", os.ModePerm)
 
 	// Register static file untuk frontend
 	e.Static("/assets", "app/views/js/dist/assets")
