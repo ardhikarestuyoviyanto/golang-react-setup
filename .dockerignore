@@ -1,0 +1,26 @@
+# Node modules
+app/views/js/node_modules
+app/views/js/dist
+app/views/js/.vite
+
+# Build artifacts
+*.log
+*.out
+*.exe
+*.test
+*.tmp
+*.bak
+
+# Git
+.git
+.gitignore
+
+# OS / editor junk files
+**/.DS_Store
+**/Thumbs.db
+.vscode
+.idea
+
+# Docker-related files (only if not needed in image)
+Dockerfile
+docker-compose.yml
