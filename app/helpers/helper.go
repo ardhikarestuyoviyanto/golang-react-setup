@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,10 +45,7 @@ func VerifyHash(hashed, plainText string) error {
 }
 
 func EncryptString(plainText string)(string, error){
-	// err := godotenv.Load()
-	// if err != nil{
-	// 	log.Fatal("Error load env file")
-	// }
+	godotenv.Load()
 	
 	var appKey = os.Getenv("APP_KEY")
 
@@ -74,10 +73,7 @@ func EncryptString(plainText string)(string, error){
 }
 
 func DecryptString(encryptedText string)(string, error){
-	// err := godotenv.Load()
-	// if err != nil{
-	// 	log.Fatal("Error load env file")
-	// }
+	godotenv.Load()
 	
 	var appKey = os.Getenv("APP_KEY")
 
@@ -117,19 +113,21 @@ func UploadFile(dstDir string, file *multipart.FileHeader)(string, error){
 
 	src, err := file.Open()
 	if err != nil {
-		return "", errors.New("Gagal Membuka File")
+		log.Printf(err.Error())
+		return "", errors.New(err.Error())
 	}
 	defer src.Close()
 
 	dst, err := os.Create(dstPath)
 	if err != nil {
-		return "", errors.New("Gagal Menyimpan File File")
+		log.Printf(err.Error())
+		return "", errors.New(err.Error())
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		return "", errors.New("Gagal Menyalin File File")
+		return "", errors.New("Gagal Menyalin File")
 	}
 
 	return randomFileName, nil
